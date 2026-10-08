@@ -1,0 +1,67 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "next-env.d.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "components/Navbar.tsx",
+    "components/Hero.tsx",
+    "components/SpinWheel.tsx",
+    "components/Countdown.tsx",
+    "components/OfferCards.tsx",
+    "components/HowItWorks.tsx",
+    "components/Stats.tsx",
+    "components/Testimonials.tsx",
+    "components/FAQ.tsx",
+    "components/Footer.tsx",
+    "components/WinnerModal.tsx",
+    "components/SoundToggle.tsx",
+    "data/**/*.ts",
+    "lib/weightedRandom.ts",
+    "lib/wheelMath.ts",
+    "lib/couponUtils.ts",
+    "lib/soundManager.ts",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "next.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "examples",
+    "build",
+    "db",
+    "scripts",
+    "components/ui"
+  ]
+}
