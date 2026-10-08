@@ -2,9 +2,9 @@
 
 import { animate, motion, useMotionValue, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Dices, Sparkles } from "lucide-react";
 import { prizes, type Prize } from "@/data/prizes";
-import { selectWeightedPrize } from "@/lib/weightedRandom";
+import { selectUniformPrize } from "@/lib/randomPrize";
 import { calculateTargetRotation, SEGMENT_ANGLE } from "@/lib/wheelMath";
 import { soundManager } from "@/lib/soundManager";
 import SoundToggle from "./SoundToggle";
@@ -15,7 +15,7 @@ const COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
 export default function SpinWheel() {
   const rotation = useMotionValue(0); const currentRotation = useRef(0); const lastTick = useRef(-1);
-  const [spinning,setSpinning] = useState(false); const [winner,setWinner] = useState<Prize|null>(null); const [cooldown,setCooldown] = useState(0); const reduceMotion = useReducedMotion();
+  const [spinning,setSpinning] = useState(false); const [winner,setWinner] = useState<Prize|null>(null); const [lastWin,setLastWin] = useState<Prize|null>(null); const [cooldown,setCooldown] = useState(0); const reduceMotion = useReducedMotion();
   const gradient = useMemo(() => `conic-gradient(from -22.5deg, ${prizes.map((p,i) => `${p.color} ${i*SEGMENT_ANGLE}deg ${(i+1)*SEGMENT_ANGLE}deg`).join(",")})`, []);
   useEffect(() => {
     if (DEMO_MODE) return; const update = () => { const last = Number(localStorage.getItem("lastSpinTimestamp") || 0); setCooldown(Math.max(0, last + COOLDOWN_MS - Date.now())); }; update(); const timer = setInterval(update,1000); return () => clearInterval(timer);
@@ -24,12 +24,12 @@ export default function SpinWheel() {
   const spin = () => {
     if (spinning) return; if (!DEMO_MODE && cooldown > 0) return;
     soundManager.unlock(); soundManager.play("start"); setSpinning(true); setWinner(null);
-    const selected = selectWeightedPrize(prizes); const selectedIndex = prizes.findIndex(p => p.id === selected.id); const fullRotations = 5 + Math.floor(Math.random()*4); const target = calculateTargetRotation(currentRotation.current, selectedIndex, fullRotations); const duration = reduceMotion ? 2.2 : 5.8;
+    const selected = selectUniformPrize(prizes); const selectedIndex = prizes.findIndex(p => p.id === selected.id); const fullRotations = 6 + Math.floor(Math.random()*3); const target = calculateTargetRotation(currentRotation.current, selectedIndex, fullRotations); const duration = reduceMotion ? 2.2 : 5.8;
     animate(rotation, target, { duration, ease:[.12,.8,.18,1], onUpdate(value) { const segment = Math.floor((value+22.5)/45); if (segment !== lastTick.current) { lastTick.current = segment; soundManager.play("tick"); } }, onComplete() {
-      currentRotation.current = target; setSpinning(false); setWinner(selected); localStorage.setItem("lastSpinTimestamp",String(Date.now())); localStorage.setItem("lastPrize",selected.id); soundManager.play("win"); setTimeout(() => soundManager.play("chime"),260);
+      currentRotation.current = target; setSpinning(false); setWinner(selected); setLastWin(selected); localStorage.setItem("lastSpinTimestamp",String(Date.now())); localStorage.setItem("lastPrize",selected.id); soundManager.play("win"); setTimeout(() => soundManager.play("chime"),260);
     }});
   };
-  return <div className="wheel-stage" id="spin-wheel">
+  return <div className="wheel-stage" id="spin-wheel" data-landed-prize={lastWin?.id ?? ""} data-final-rotation={lastWin ? Math.round(currentRotation.current) : ""}>
     <div className="wheel-orbit" aria-label="Prize wheel with eight offers">
       <div className="pointer" aria-hidden="true"><span /></div>
       <div className="bulb-ring" aria-hidden="true">{Array.from({length:24},(_,i)=><i key={i} style={{transform:`rotate(${i*15}deg) translateY(-50%)`}} />)}</div>
@@ -38,7 +38,8 @@ export default function SpinWheel() {
       </motion.div>
       <button id="wheel-spin" className="spin-center" onClick={spin} disabled={spinning || (!DEMO_MODE && cooldown>0)} aria-label="Spin the prize wheel"><Sparkles />{spinning ? "SPINNING" : "SPIN"}</button>
     </div>
-    <div className="wheel-meta"><SoundToggle /><span>{spinning ? "Your festive reward is on its way…" : "Tap the center and try your luck"}</span></div>
+    <div className="wheel-meta"><SoundToggle /><span>{spinning ? "Your festive reward is on its way…" : lastWin ? `Last win: ${lastWin.label}` : "Tap the center and try your luck"}</span></div>
+    <div className="fair-play"><Dices /><span><strong>Fair festive spin</strong>All 8 prizes have equal odds</span></div>
     {!DEMO_MODE && cooldown>0 && <p className="cooldown">You&apos;ve already used today&apos;s spin. Come back in <strong>{cooldownText}</strong></p>}
     <WinnerModal prize={winner} onClose={() => setWinner(null)} />
   </div>;

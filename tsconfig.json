@@ -48,7 +48,7 @@
     "components/WinnerModal.tsx",
     "components/SoundToggle.tsx",
     "data/**/*.ts",
-    "lib/weightedRandom.ts",
+    "lib/randomPrize.ts",
     "lib/wheelMath.ts",
     "lib/couponUtils.ts",
     "lib/soundManager.ts",
